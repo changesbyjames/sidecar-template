@@ -1,20 +1,17 @@
 {
   "name": "<%= name %>",
-  "version": "<%= version %>",
-  "description": "<%= description %>",
+  "version": "1.0.0",
   "keywords": [
-    "<%= name %>",
-    "zce"
+    "<%= name %>"
   ],
-  "repository": "<%= github %>/<%= name %>",
-  "license": "MIT",
-  "author": "<%= author %> <<%= email %>> (<%= url %>)",
-  "scripts": {},
-  "renovate": {
-    "extends": [
-      "zce"
-    ]
+  "license": "UNLICENSED",
+  "author": "<%= author %> <<%= email %>>",
+  "scripts": {
+    "bootstrap": "npm i & concurrently \"cd api && npm i\" && prettier . --write"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "prettier": "^2.8.8",
+    "concurrently": "^8.2.0"
+  }
 }
