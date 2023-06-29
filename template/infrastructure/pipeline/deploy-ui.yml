@@ -1,0 +1,22 @@
+parameters:
+  - name: azureSubscription
+    type: string
+
+steps:
+  - task: AzureCLI@2
+    displayName: '[Azure] Copy'
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az config set extension.use_dynamic_install=yes_without_prompt
+        az storage azcopy blob upload --container \$web --source "../ui/*" --account-name $(accountName) --recursive
+  - task: AzureCLI@2
+    displayName: 'Azure CLI: Purge CDN'
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: 'bash'
+      scriptLocation: inlineScript
+      inlineScript: |
+        az cdn endpoint purge --resource-group $(resourceGroupName) --name $(endpointName) --profile-name $(profileName) --content-paths "/*"

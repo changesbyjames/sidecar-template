@@ -3,7 +3,7 @@
 const { optional } = require('./utils');
 
 /** @type {import('caz').Template['prompts']}} */
-const a = [
+module.exports = [
   {
     name: 'api',
     type: 'confirm',
@@ -38,7 +38,7 @@ const a = [
   },
   {
     name: 'authOptions',
-    type: (_, answers) => (answers['components'].includes('auth') ? 'multiselect' : null),
+    type: (_, answers) => (answers.components?.includes('auth') ? 'multiselect' : null),
     message: 'Which authentication options do you need?',
     choices: [
       {
@@ -69,5 +69,3 @@ const a = [
     ]
   }
 ];
-
-module.exports = a;

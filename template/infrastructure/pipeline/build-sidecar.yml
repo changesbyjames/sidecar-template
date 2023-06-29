@@ -1,0 +1,18 @@
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '16.x'
+    displayName: 'Install Node.js'
+
+  - script: npm install --only=dev
+    displayName: '[NPM] Install dependencies for Sidecar'
+
+  - script: npm run sidecar:build
+    displayName: '[NPM] Run sidecar build'
+
+  - task: PublishPipelineArtifact@1
+    displayName: '[Artifact] Upload "sidecar" artifact'
+    inputs:
+      targetPath: 'sidecar/dist'
+      artifactName: 'sidecar'
+      artifactType: 'pipeline'

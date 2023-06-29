@@ -1,52 +1,13 @@
 const path = require('path');
 const { writeFile } = require('fs/promises');
-const { spawn } = require('child_process');
 const { name, version } = require('./package.json');
 
-const run = (command, cwd = process.cwd()) => {
-  return new Promise((resolve, reject) => {
-    const [cmd, ...args] = command.split(' ');
-
-    const child = spawn(cmd, args, { stdio: 'inherit', shell: true, cwd });
-    child.once('error', reject);
-    child.once('exit', code => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Command failed with exit code: ${code}`));
-      }
-    });
-  });
-};
+const { run, replaceTemplateStrings, restoreTemplateStrings } = require('./utils/process');
 
 const project = require('./prompts/project.js');
 const api = require('./prompts/api.js');
 const pulumi = require('./prompts/pulumi.js');
 const drive = require('./prompts/drive.js');
-
-// A function that goes through an array of files, checks if there is Es6 template string in the contents and if so, replaces it with $[[variableName]] syntax.
-/** @param {Array<{ contents: Buffer }>} files */
-const replaceTemplateStrings = files => {
-  return files.map(file => {
-    const content = file.contents.toString();
-    if (content.includes('${')) {
-      // Replace all instances of ${something} with $[[something]]
-      file.contents = Buffer.from(content.replace(/\$\{(.+?)\}/g, '$[[$1]]'));
-    }
-    return file;
-  });
-};
-
-const restoreTemplateStrings = files => {
-  return files.map(file => {
-    const content = file.contents.toString();
-    if (content.includes('$[[')) {
-      // Replace all instances of $[[something]] with  ${something}
-      file.contents = Buffer.from(content.replace(/\$\[\[(.+?)\]\]/g, '${$1}'));
-    }
-    return file;
-  });
-};
 
 /** @type {import('caz').Template} */
 module.exports = {
@@ -62,18 +23,14 @@ module.exports = {
   },
   emit: async ctx => {
     ctx.files = restoreTemplateStrings(ctx.files);
-    await Promise.all(
-      ctx.files.map(async item => {
-        await writeFile(path.join(ctx.dest, item.path), item.contents);
-      })
-    );
+    await Promise.all(ctx.files.map(async item => await writeFile(path.join(ctx.dest, item.path), item.contents)));
   },
 
   filters: {
-    /** @param {{ api: boolean }} a */
-    'api/**/*': a => a.api,
-    /** @param {{ components: string[] }} a */
-    'api/src/routes/authentication-router.ts': a => a.components.includes('auth')
+    /** @param {{ api: boolean }} flags */
+    'api/**/*': flags => flags.api,
+    /** @param {{ components: string[] }} flags */
+    'api/src/routes/authentication-router.ts': flags => flags.components?.includes('auth')
   },
   complete: async ctx => {
     console.clear();

@@ -1,0 +1,106 @@
+trigger:
+  - main
+
+parameters:
+  - name: build_all
+    displayName: Force all builds
+    type: boolean
+    default: false
+
+variables:
+  AZURE_KEYVAULT_AUTH_VIA_CLI: true
+  PROJECT_NAME: <%= name %>
+  ACCOUNT_NAME: <%= storageAccount %>
+  azureSubscription: 'AzureConnection'
+  dockerRegistryServiceConnection: 'Registry'
+  imageRepository: 'api'
+  containerRegistry: 'si<%= name %>cr.azurecr.io'
+
+stages:
+  - stage: build
+    displayName: 'Build'
+    jobs:
+      - job: check
+        displayName: 'Check changes'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - script: npm i --include=dev
+            displayName: '[NPM] Install dependencies for monorepo'
+          - script: npm run changes
+            name: changes
+            displayName: '[NPM] Checking changes to determine what stages to run'
+            env:
+              FORCE_ALL: ${{ parameters.build_all }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              DEFINITION_ID: $(System.DefinitionId)
+              BRANCH_NAME: $(Build.SourceBranchName)
+
+      - job: build_ui
+        displayName: 'Build UI'
+        pool:
+          vmImage: 'ubuntu-latest'
+        dependsOn: check
+        condition: eq(dependencies.check.outputs['changes.APP_CHANGED'], 'true')
+        steps:
+          - template: build-ui.yml
+            parameters:
+              dir: app
+
+<% if (api) { %>
+      - job: build_api
+        displayName: 'Build API'
+        pool:
+          vmImage: 'ubuntu-latest'
+        dependsOn: check
+        condition: eq(dependencies.check.outputs['changes.API_CHANGED'], 'true')
+        steps:
+          - template: build-api.yml
+            parameters:
+              dir: api
+
+      - job: build_sidecar
+        displayName: 'Build Sidecar'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - template: build-sidecar.yml
+<% } %>
+  - stage: dev_deploy
+    displayName: 'Deploy to development'
+    jobs:
+      - deployment: pulumi
+        displayName: 'Pulumi up'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: Development
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - template: pulumi.yml
+                  parameters:
+                    stack: dev
+                    azureSubscription: $(azureSubscription)
+
+      - deployment: ui
+        dependsOn: pulumi
+        condition: eq(stageDependencies.build.check.outputs['changes.APP_CHANGED'], 'true')
+        displayName: 'Deploy UI'
+        pool:
+          vmImage: 'ubuntu-latest'
+        environment: Development
+        variables:
+          accountName: $[dependencies.pulumi.outputs['pulumi.pulumi.accountName']]
+          resourceGroupName: $[dependencies.pulumi.outputs['pulumi.pulumi.resourceGroupName']]
+          endpointName: $[dependencies.pulumi.outputs['pulumi.pulumi.endpointName']]
+          profileName: $[dependencies.pulumi.outputs['pulumi.pulumi.profileName']]
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: deploy-ui.yml
+                  parameters:
+                    azureSubscription: $(azureSubscription)

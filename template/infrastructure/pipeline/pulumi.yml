@@ -1,0 +1,56 @@
+parameters:
+  - name: stack
+    type: string
+  - name: dir
+    default: infrastructure/pulumi
+    type: string
+  - name: azureSubscription
+    type: string
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '16.x'
+    displayName: 'Install Node.js'
+
+  - script: npm ci
+    displayName: 'Install dependencies'
+
+  - script: curl -fsSL https://get.pulumi.com | sh
+    displayName: '[Pulumi] Install pulumi'
+
+  - task: AzureCLI@2
+    displayName: '[Pulumi] Up'
+    name: pulumi
+    inputs:
+      azureSubscription: ${{ parameters.azureSubscription }}
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        # Grant access to the storage account where the pulumi state lives
+        # The service principal needs to be granted Storage Blob Data Contributor role
+        # The service principal also need Encrypt and Decrypt permissions on the key vault
+        pulumi login azblob://$(PROJECT_NAME)?storage_account=$(ACCOUNT_NAME)
+
+        # Select the environment to deploy
+        pulumi stack select ${{ parameters.stack }}
+        <% if (api) { %>
+        # Choose the appropriate build (API build can be skipped) and set to pulumi config
+        BUILD_ID=$(Build.BuildId) CONTAINER_REGISTRY=$(containerRegistry) npx zx ../scripts/appropriate-build.mjs
+        <% } %>
+
+        npm install
+
+        # Manually set the service principal credentials
+        pulumi config set azure-native:clientId $servicePrincipalId
+        pulumi config set azure-native:clientSecret $servicePrincipalKey --secret
+        pulumi config set azure-native:tenantId $tenantId
+        pulumi config set azure-native:subscriptionId $(az account show --query id -o tsv)
+
+        # Deploy the infrastructure
+        pulumi up -f -y
+
+        # Publish the outputs to the pipeline for use in next steps
+        npx zx ../scripts/publish-outputs.mjs
+      addSpnToEnvironment: true
+      workingDirectory: ${{ parameters.dir }}

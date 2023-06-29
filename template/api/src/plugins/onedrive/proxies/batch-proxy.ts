@@ -19,14 +19,13 @@ export default function configure(
     return await getUserAccessConfiguration(request);
   };
 
+  
   return async function register(router: FastifyInstance) {
-    // This is a middleware that is applied to all routes in this router
-    // It checks the driveId parameter and verifies that it is an approved drive
-
     router.route({
       url: '/$batch',
       method: ['POST'],
       handler: async (request: FastifyRequest, reply: FastifyReply) => {
+        throw new Error('Not implemented');
         return reply.from(preparePath(request, prefix), {
           rewriteRequestHeaders: await prepareRequestHeaders(auth),
           rewriteHeaders: prepareResponseHeaders

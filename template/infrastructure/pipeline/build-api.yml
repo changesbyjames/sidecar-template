@@ -1,0 +1,15 @@
+parameters:
+  - name: dir
+    type: string
+
+steps:
+  - task: Docker@2
+    displayName: Build and push an image to container registry
+    inputs:
+      command: buildAndPush
+      repository: $(imageRepository)
+      dockerfile: $(Build.SourcesDirectory)/${{ parameters.dir }}/Dockerfile
+      buildContext: $(Build.SourcesDirectory)/${{ parameters.dir }}
+      containerRegistry: $(dockerRegistryServiceConnection)
+      tags: |
+        $(Build.BuildId)

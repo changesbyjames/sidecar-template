@@ -41,6 +41,7 @@ const getEmailsInCustomerFolder = async (client: Client, id: string): Promise<st
 };
 
 const AccessCache = new Map<string, string[]>();
+const CACHE_MODE = false;
 
 const getCustomerFoldersByEmail = async (email: string, client: Client): Promise<string[]> => {
   const customers = await getCustomerFolders(client);
@@ -50,8 +51,7 @@ const getCustomerFoldersByEmail = async (email: string, client: Client): Promise
       const emails = await getEmailsInCustomerFolder(client, customer.id);
       emails.forEach(email => {
         if (!AccessCache.has(email)) {
-          AccessCache.set(email, [customer.id]);
-          return;
+          AccessCache.set(email, []);
         }
 
         const ids = AccessCache.get(email);
@@ -63,7 +63,7 @@ const getCustomerFoldersByEmail = async (email: string, client: Client): Promise
     })
   );
 
-  if (AccessCache.has(email)) {
+  if (AccessCache.has(email) && CACHE_MODE) {
     const ids = AccessCache.get(email);
     if (!ids) throw new Error('No ids');
     return ids;
@@ -72,6 +72,7 @@ const getCustomerFoldersByEmail = async (email: string, client: Client): Promise
   await updateCacheProcess;
   return AccessCache.get(email) || [];
 };
+
 
 export default async function register(router: FastifyInstance) {
   router.register(b2cAuthentication, {

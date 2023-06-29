@@ -7,11 +7,22 @@
   "license": "UNLICENSED",
   "author": "<%= author %> <<%= email %>>",
   "scripts": {
-    "bootstrap": "npm i & concurrently \"cd api && npm i\" && prettier . --write"
+    "pulumi": "zx ./infrastructure/scripts/bootstrap-pulumi.mjs",
+    "pulumi:optimise": "zx ./infrastructure/scripts/optimise-pulumi.mjs",
+    "changes": "zx ./infrastructure/scripts/determine-changes.mjs",
+    "bootstrap": "npm i & concurrently \"cd api && npm i\" \"cd app && npm i\"",
+    "format": "npx prettier . --write",
+    "sidecar:start": "cd sidecar && DEBUG=sidecar npx @sidecarcms/cli run",
+    "sidecar:build": "cd sidecar && DEBUG=sidecar npx @sidecarcms/cli build"
   },
   "dependencies": {},
   "devDependencies": {
+    "@sidecarcms/core": "^0.0.16",
     "prettier": "^2.8.8",
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "ts-node": "^10.9.1",
+    "@sidecarcms/cli": "^1.1.10",
+    "zod": "^3.21.4",
+    "zx": "^7.1.1"
   }
 }
