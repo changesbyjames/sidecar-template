@@ -7,6 +7,7 @@ import { Variables } from '../backstage/config';
 
 import { build } from '~build/meta';
 import now from '~build/time';
+import { mapLogLevelToAppInsights, useDebug, useLogger } from './DebugProvider';
 
 interface NetworkInformation {
   readonly effectiveType: 'slow-2g' | '2g' | '3g' | '4g';
@@ -22,12 +23,15 @@ interface AppInsightsStore {
   getSessionId: () => string | undefined;
   trackException: (exception: Error) => void;
   addAuthenticatedUserContext: (userId: string) => void;
-  trackEvent: (name: string, properties?: { [key: string]: string }) => void;
+  trackEvent: (event: string, properties?: { [key: string]: string }) => void;
 }
 const AppInsightsContext = createContext<StoreApi<AppInsightsStore> | null>(null);
 
 export const AppInsightsProvider: FC<PropsWithChildren> = ({ children }) => {
   const connectionString = useVariable<Variables>('appInsightsConnectionString');
+
+  const log = useDebug('AppInsightsProvider');
+  const { logger, level } = useLogger();
 
   const [appInsights] = useState<ApplicationInsights>(() => {
     const reactPlugin = new ReactPlugin();
@@ -69,11 +73,44 @@ export const AppInsightsProvider: FC<PropsWithChildren> = ({ children }) => {
     }
 
     appInsights.loadAppInsights();
-  }, [appInsights]);
+
+    // There are some exceptions that are "valid" and we don't want to track them
+    // This is because it takes up app insights quota and we want "exception" to be
+    // a signal that something is wrong
+    const hasExceptionRegex = /exception/i;
+    // If the exception message matches any of these regexes, we don't track it
+    const FilteredExceptions: RegExp[] = [/ResizeObserver/];
+    appInsights.addTelemetryInitializer(envelope => {
+      if (hasExceptionRegex.test(envelope.name)) {
+        log.debug(`Envelope is an exception`);
+        if (FilteredExceptions.some(exception => envelope.data?.message && exception.test(envelope.data.message))) {
+          log.debug(`Envelope is a filtered exception`);
+          return false;
+        }
+        log.debug(`Did not filter the exception`);
+        return true;
+      }
+    });
+  }, [appInsights, log]);
+
+  useEffect(() => {
+    logger.settings.attachedTransports = [
+      log => {
+        if (!appInsights.appInsights.isInitialized()) {
+          return;
+        }
+        const message = log['0'] as unknown as string;
+        const logLevel = log._meta.logLevelId;
+        if (logLevel < level) return;
+        const severityLevel = mapLogLevelToAppInsights(logLevel);
+        appInsights.trackTrace({ message, severityLevel });
+      }
+    ];
+  }, [appInsights, logger, level]);
 
   const store = useMemo(
     () =>
-      createStore<AppInsightsStore>((set, get) => ({
+      createStore<AppInsightsStore>(() => ({
         getSessionId: () => {
           if (!appInsights) {
             return 'No session in development';
@@ -81,25 +118,25 @@ export const AppInsightsProvider: FC<PropsWithChildren> = ({ children }) => {
           return appInsights?.context?.getSessionId();
         },
         trackException: (exception: Error) => {
-          if (!appInsights) {
-            console.error(exception);
+          if (!appInsights.appInsights.isInitialized()) {
+            log.error(exception);
             return;
           }
           appInsights.trackException({ exception });
         },
         addAuthenticatedUserContext: (userId: string, partnerId?: string) => {
-          if (!appInsights) {
-            console.warn(`AppInsights is not enabled in development: $%{userId}%`);
+          if (!appInsights.appInsights.isInitialized()) {
+            log.warn(`AppInsights is not enabled in development);
             return;
           }
           appInsights.setAuthenticatedUserContext(userId, partnerId, true);
         },
-        trackEvent: (name: string, properties?: { [key: string]: string }) => {
-          if (!appInsights) {
-            console.warn(`AppInsights is not enabled in development: $%{name}%`);
+        trackEvent: (event: string, properties?: { [key: string]: string }) => {
+          if (!appInsights.appInsights.isInitialized()) {
+            log.warn(`AppInsights is not enabled in development: $%{event}%`);
             return;
           }
-          appInsights.trackEvent({ name }, properties);
+          appInsights.trackEvent({ name: event }, properties);
         }
       })),
     [appInsights]

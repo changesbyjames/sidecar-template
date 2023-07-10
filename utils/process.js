@@ -22,8 +22,9 @@ exports.replaceTemplateStrings = files => {
   return files.map(file => {
     const content = file.contents.toString();
     if (content.includes('${')) {
-      // Replace all instances of ${something} with $%{something}%
-      file.contents = Buffer.from(content.replace(/\${(.*?)}/g, '$%{$1}%'));
+      console.log('Replacing template strings in', file.path);
+      // Replace all instances of ${something} with %%something%%
+      file.contents = Buffer.from(content.replace(/\${(.*?)}/g, '%%$1%%'));
     }
     return file;
   });
@@ -33,9 +34,10 @@ exports.replaceTemplateStrings = files => {
 exports.restoreTemplateStrings = files => {
   return files.map(file => {
     const content = file.contents.toString();
-    if (content.includes('$[[')) {
-      // Replace all instances of $%{something}% with  ${something}
-      file.contents = Buffer.from(content.replace(/\$%{(.*?)}%/g, '${$1}'));
+    if (content.includes('%%')) {
+      console.log('Restoring template strings in', file.path);
+      // Replace all instances of $%%something%% with ${something}
+      file.contents = Buffer.from(content.replace(/\%%(.*?)\%%/g, '${$1}'));
     }
     return file;
   });

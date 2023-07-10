@@ -13,7 +13,10 @@ export const config: Config = {
     apiScope: 'API.Access',
     policy: 'B2C_1_SIGN_UP_SIGN_IN',
 
-    supportEmail: 'james-williams@softwareimaging.com'
+    supportEmail: 'james-williams@softwareimaging.com',
+    debugLevel: '3'
   },
-  flags: {}
+  flags: {
+    flag: true
+  }
 };

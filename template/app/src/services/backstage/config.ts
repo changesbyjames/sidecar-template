@@ -12,7 +12,7 @@ export interface Config extends BackstageConfig {
 
     // App Insights
     appInsightsConnectionString?: string;
-    
+
     // B2C
     clientId: string;
     policy: string;
@@ -20,8 +20,11 @@ export interface Config extends BackstageConfig {
     authority: string;
     apiScope: string;
     tenant: string;
+    debugLevel?: string;
   };
-  flags: {};
+  flags: {
+    flag: boolean;
+  };
 }
 
 export type Variables = keyof Config['variables'];
