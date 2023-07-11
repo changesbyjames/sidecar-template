@@ -155,7 +155,6 @@ const getExplanationForError = (error: Error) => {
 
 export const CriticalErrorBoundary: FC<PropsWithChildren> = ({ children }) => {
   const Fallback: FC<FallbackProps> = ({ error, resetErrorBoundary }) => {
-    const email = useVariable<Variables>('supportEmail');
 
     return (
       <div className="text-primary flex h-screen w-screen md:items-center justify-center p-6">

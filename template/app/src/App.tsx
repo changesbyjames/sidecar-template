@@ -21,10 +21,12 @@ import { QueryProvider } from '@/services/graph/QueryProvider';
 import { AuthenticationProvider } from '@/services/authentication/B2CProvider';
 
 // Authentication
-// import { Redirect } from '@/pages/authentication/Redirect';
-// import { SignIn } from '@/pages/authentication/SignIn';
-// import { SignOut } from '@/pages/authentication/SignOut';
-// import { SignOutRedirect } from '@/pages/authentication/SignOutRedirect';
+import { Redirect } from '@/pages/authentication/Redirect';
+import { SignIn } from '@/pages/authentication/SignIn';
+import { SignOut } from '@/pages/authentication/SignOut';
+import { SignOutRedirect } from '@/pages/authentication/SignOutRedirect';
+import { Authenticated } from '@/pages/authentication/Authenticated';
+
 
 import { Button } from '@/components/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/card';
@@ -58,18 +60,15 @@ function App() {
                     <GraphProvider>
                       <Suspense fallback={<p>Loading...</p>}>
                         <Routes>
-                          <Route path="/" element={<Home />} />
-                          {/* <Route element={<Authenticated />}>
-                            <Route element={<Dashboard />}>
+                          <Route element={<Authenticated />}>
                               <Route path="/" element={<Home />} />
-                            </Route>
-                          </Route> */}
-                          {/* <Route path="auth">
+                          </Route>
+                          <Route path="auth">
                             <Route path="signout" element={<SignOut />} />
                             <Route path="redirect" element={<Redirect />} />
                             <Route path="signin" element={<SignIn />} />
                             <Route path="signout/redirect" element={<SignOutRedirect />} />
-                          </Route> */}
+                          </Route>
                           <Route path="*" element={<p>Not found</p>} />
                         </Routes>
                       </Suspense>
