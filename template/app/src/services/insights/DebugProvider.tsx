@@ -63,7 +63,7 @@ const useDebugLevel = (): [number, (level: number) => void, Date | undefined, (u
     (level: number) => {
       setLocalLevel(level);
     },
-    [setTempDebugLevelUntil]
+    [setLocalLevel]
   );
 
   if (debugLevelUntil && new Date(debugLevelUntil) > new Date()) {

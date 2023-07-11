@@ -68,7 +68,7 @@ const Issue: FC<ZodIssue> = ({ path, message }) => {
     <div>
       <p className="text-sm">
         <label className="mr-1 font-medium">Issue:</label>
-        Property "{path.join('.')}"{message === 'Required' ? ' is required' : `: $%{message}%`}
+        Property &quot;{path.join('.')}&quot;{message === 'Required' ? ' is required' : `: $%{message}%`}
       </p>
     </div>
   );
@@ -166,7 +166,7 @@ export const CriticalErrorBoundary: FC<PropsWithChildren> = ({ children }) => {
             </h1>
             <p className="leading-5">
               <Balancer>
-                We're sorry, we've encountered a problem that has stopped the application working as expected.
+                {`We're sorry, we've encountered a problem that has stopped the application working as expected.`}
               </Balancer>
             </p>
           </div>
@@ -188,7 +188,7 @@ export const CriticalErrorBoundary: FC<PropsWithChildren> = ({ children }) => {
               </Balancer>
             </p>
             <SessionReference />
-            <a target="_blank" onClick={resetErrorBoundary} href={`mailto:$%{email}%`}>
+            <a target="_blank" onClick={resetErrorBoundary} href={`mailto:$%{email}%`} rel="noreferrer">
               <Button>Contact support</Button>
             </a>
           </div>

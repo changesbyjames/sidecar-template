@@ -126,7 +126,7 @@ export const AppInsightsProvider: FC<PropsWithChildren> = ({ children }) => {
         },
         addAuthenticatedUserContext: (userId: string, partnerId?: string) => {
           if (!appInsights.appInsights.isInitialized()) {
-            log.warn(`AppInsights is not enabled in development);
+            log.warn(`AppInsights is not enabled in development`);
             return;
           }
           appInsights.setAuthenticatedUserContext(userId, partnerId, true);
@@ -139,7 +139,7 @@ export const AppInsightsProvider: FC<PropsWithChildren> = ({ children }) => {
           appInsights.trackEvent({ name: event }, properties);
         }
       })),
-    [appInsights]
+    [appInsights, log]
   );
 
   return <AppInsightsContext.Provider value={store}>{children}</AppInsightsContext.Provider>;
