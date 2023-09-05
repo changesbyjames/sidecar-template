@@ -14,6 +14,7 @@ COPY ["package.json", "package-lock.json*", "tsconfig.json", "npm-shrinkwrap.jso
 RUN npm install --production && mv node_modules ../
 
 COPY --from=builder /usr/builder/dist .
+COPY --from=builder /usr/builder/src/jobs jobs
 ENV PORT 3000
 EXPOSE 3000
 

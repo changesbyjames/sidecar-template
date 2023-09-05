@@ -2,7 +2,6 @@
 import 'zx/globals';
 import { spawn } from 'child_process';
 
-const SUBSCRIPTION = 'be713777-6e12-4b6b-8ff3-1cd7ec98d6e4';
 const GROUP = '<%= resourceGroup %>';
 const ACCOUNT = '<%= storageAccount %>';
 const KEY_VAULT = '<%= keyVault%>';
@@ -11,7 +10,7 @@ const INFRA_PATH = 'infrastructure/pulumi';
 
 const TO_INCLUDE_SECRET_PROVIDER = [['stack', 'init'], ['new']];
 
-console.log(`Performing custom bootstrap of Pulumi for subscription ${SUBSCRIPTION} in group ${GROUP}`);
+console.log(`Performing custom bootstrap of Pulumi for subscription in group ${GROUP}`);
 
 try {
   const version = await quiet($`pulumi version`);

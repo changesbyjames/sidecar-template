@@ -47,13 +47,7 @@ module.exports = {
     }
     console.log('\n');
     console.log('[sidecar] Set up the Pulumi stack:');
-    console.log(`  $ npm run pulumi stack init dev`);
+    console.log(`  $ npm run pulumi:init`);
     console.log(`  $ npm run pulumi up`);
-
-    console.log('\n');
-    console.log('Set up the pipeline: https://example.com');
-
-    console.log('\n');
-    console.log('Get started with developing: https://example.com');
   }
 };

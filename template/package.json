@@ -9,8 +9,9 @@
   "scripts": {
     "pulumi": "zx ./infrastructure/scripts/bootstrap-pulumi.mjs",
     "pulumi:optimise": "zx ./infrastructure/scripts/optimise-pulumi.mjs",
+    "pulumi:init": "zx ./infrastructure/scripts/init-pulumi.mjs",
     "changes": "zx ./infrastructure/scripts/determine-changes.mjs",
-    "bootstrap": "npm i & concurrently \"cd api && npm i\" \"cd app && npm i\"",
+    "bootstrap": "npm i & concurrently \"cd api && npm i\" \"cd infrastructure/pulumi && npm i\" \"cd app && npm i\"",
     "format": "npx prettier . --write",
     "sidecar:start": "cd sidecar && DEBUG=sidecar npx @sidecarcms/cli run",
     "sidecar:build": "cd sidecar && DEBUG=sidecar npx @sidecarcms/cli build"

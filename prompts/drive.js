@@ -5,8 +5,7 @@ module.exports = [
   {
     name: 'drive',
     type: 'confirm',
-    message:
-      'You will need to setup or use an existing SharePoint group to store files. See here to use the existing development share: https://streamable.com/2q2q2q. or here to set up a new one: https://streamable.com/2q2q2q. Continue?'
+    message: 'You will need to setup or use an existing SharePoint group to store files. Continue?'
   },
   {
     name: 'tenantId',

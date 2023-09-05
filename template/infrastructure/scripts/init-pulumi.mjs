@@ -1,0 +1,1 @@
+await $`npm run pulumi stack init dev`;

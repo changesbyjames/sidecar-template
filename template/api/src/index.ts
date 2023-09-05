@@ -39,6 +39,45 @@ import proxyRouter from './routes/proxy-router';
 server.register(proxyRouter);
 <% } %>
 
+<% if (components.includes('webhooks')) { %>
+import webhookRouter from './routes/webhook-router';
+server.register(webhookRouter);
+<% } %>
+
+import Bree from 'bree';
+import TSBree from '@breejs/ts-worker';
+import Graceful from '@ladjs/graceful';
+Bree.extend(TSBree);
+
+const bree = new Bree({
+  jobs: [
+    {
+      name: 'webhook-heartbeat',
+      cron: '0 * * * *',
+      closeWorkerAfterMs: 1000 * 60 * 5
+    }
+  ],
+  errorHandler(error, workerMetadata) {
+    insights.trackException({ exception: error });
+    console.log(`Error in worker ${workerMetadata.name}: ${error.message}`);
+  },
+  workerMessageHandler: ({ name, message }) => {
+    console.log(`Message from worker "${name}": ${message}`);
+    if (message.startsWith('event/')) {
+      const event = message.replace('event/', '');
+      insights.trackEvent({ name: event });
+    }
+  },
+  defaultExtension: 'ts',
+  root: path.join(__dirname, 'jobs')
+});
+
+bree.on('worker created', name => insights.trackEvent({ name: 'WorkerCreated', properties: { name } }));
+bree.on('worker deleted', name => insights.trackEvent({ name: 'WorkerDeleted', properties: { name } }));
+
+const graceful = new Graceful({ brees: [bree], customHandlers: [() => insights.flush()] });
+
+
 const port = Number(process.env.PORT);
 const host = process.env.HOST;
 if (!port || !host) {

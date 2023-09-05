@@ -28,12 +28,6 @@ module.exports = [
     initial: PulumiDefaults.keyVault
   },
   {
-    name: 'permissions',
-    type: 'confirm',
-    message: (_, answers) =>
-      `Watch this video and complete the steps: https://streamable.com/2q2q2q (storage account: "${answers.storageAccount}", key vault: "${answers.keyVault}", name: "${answers.name}"). Continue?`
-  },
-  {
     name: 'creationOfContainer',
     type: 'confirm',
     message: (_, answers) =>
